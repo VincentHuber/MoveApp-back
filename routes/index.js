@@ -84,7 +84,7 @@ router.post('/signin', (req, res) => {
 
 
 // LogOut router
-router.get('/logout', (req, res)=>{
+router.put('/logout', (req, res)=>{
   
   User.updateOne(
     { token: token },
