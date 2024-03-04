@@ -137,7 +137,7 @@ router.post('/uploadProfileCover', async (req, res) => {
  
 // Update user profile router
 router.put('/updateProfile', (req, res) => {
-  const { token, nickname, mail, password, adress, description, sports, ambition, coverPicture, profilePicture } = req.body;
+  const { token, nickname, mail, password, address, description, sports, ambition, coverPicture, profilePicture } = req.body;
 
   if (!token) {
     return res.json({ result: false, error: "Token invalide" });
@@ -151,7 +151,7 @@ router.put('/updateProfile', (req, res) => {
     const hash = bcrypt.hashSync(password, 10);
     updateFields.password = hash;
   }
-  if (adress) updateFields.adress = adress;
+  if (address) updateFields.adress = address;
   if (description) updateFields.description = description;
   if (sports) updateFields.sports = sports;
   if (ambition) updateFields.ambition = ambition;
@@ -162,7 +162,7 @@ router.put('/updateProfile', (req, res) => {
   User.findOneAndUpdate(
     { token: token },
     { $set: updateFields },
-    { new: true } // Pour renvoyer le document mis à jour
+    { new: true } 
   ).then(updatedUser => {
     if (updatedUser) {
       res.json({ result: true, data: updatedUser });
