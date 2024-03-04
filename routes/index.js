@@ -135,48 +135,43 @@ router.post('/uploadProfileCover', async (req, res) => {
   }
 });
  
-
 // Update user profile router
-router.put('/update/:userToken', (req, res) => {
-  const userToken = req.params.userToken; // Récupérer le token d'utilisateur depuis l'URL
-  const updateFields = {};
+router.put('/updateProfile', (req, res) => {
+  const { token, nickname, mail, password, adress, description, sports, ambition, coverPicture, profilePicture } = req.body;
 
-  // Construire l'objet contenant les champs à mettre à jour
-  if (req.body.nickname) {
-    updateFields.nickname = req.body.nickname;
+  if (!token) {
+    return res.json({ result: false, error: "Token invalide" });
   }
-  if (req.body.mail) {
-    updateFields.mail = req.body.mail;
-  }
-  if (req.body.password) {
-    const hash = bcrypt.hashSync(req.body.password, 10);
+
+  // Construire l'objet de mise à jour
+  const updateFields = {};
+  if (nickname) updateFields.nickname = nickname;
+  if (mail) updateFields.mail = mail;
+  if (password) {
+    const hash = bcrypt.hashSync(password, 10);
     updateFields.password = hash;
   }
-  if (req.body.adress) {
-    updateFields.adress = req.body.adress;
-  }
-  if (req.body.description) {
-    updateFields.description = req.body.description;
-  }
-  if (req.body.ambition) {
-    updateFields.ambition = req.body.ambition;
-  }
-  if (req.body.coverPicture) {
-    updateFields.coverPicture = req.body.coverPicture;
-  }
-  if (req.body.profilePicture) {
-    updateFields.profilePicture = req.body.profilePicture;
-  }
-  if (req.body.sports) {
-    updateFields.sports = req.body.sports;
-  }
+  if (adress) updateFields.adress = adress;
+  if (description) updateFields.description = description;
+  if (sports) updateFields.sports = sports;
+  if (ambition) updateFields.ambition = ambition;
+  if (coverPicture) updateFields.coverPicture = coverPicture;
+  if (profilePicture) updateFields.profilePicture = profilePicture;
 
-  User.update({ token: userToken }, { $set: updateFields }, (err) => {
-    if (err) {
-      console.error("Erreur:", err);
-      return res.json({ result: false, error: 'Erreur lors de la mise à jour du profil utilisateur' });
+  // Mettre à jour l'utilisateur
+  User.findOneAndUpdate(
+    { token: token },
+    { $set: updateFields },
+    { new: true } // Pour renvoyer le document mis à jour
+  ).then(updatedUser => {
+    if (updatedUser) {
+      res.json({ result: true, data: updatedUser });
+    } else {
+      res.json({ result: false, error: 'Utilisateur introuvable' });
     }
-    res.json({ result: true, message: 'Profil utilisateur mis à jour avec succès' });
+  }).catch(error => {
+    console.error("Erreur de mise à jour du profil:", error);
+    res.json({ result: false, error: 'Erreur de mise à jour du profil' });
   });
 });
 
