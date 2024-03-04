@@ -120,9 +120,51 @@ router.post('/uploadProfileCover', async (req, res) => {
     res.status(400).json({ error: "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête." });
   }
 });
-  
+ 
 
+// Update user profile router
+router.put('/update/:userToken', (req, res) => {
+  const userToken = req.params.userToken; // Récupérer le token d'utilisateur depuis l'URL
+  const updateFields = {};
 
+  // Construire l'objet contenant les champs à mettre à jour
+  if (req.body.nickname) {
+    updateFields.nickname = req.body.nickname;
+  }
+  if (req.body.mail) {
+    updateFields.mail = req.body.mail;
+  }
+  if (req.body.password) {
+    const hash = bcrypt.hashSync(req.body.password, 10);
+    updateFields.password = hash;
+  }
+  if (req.body.adress) {
+    updateFields.adress = req.body.adress;
+  }
+  if (req.body.description) {
+    updateFields.description = req.body.description;
+  }
+  if (req.body.ambition) {
+    updateFields.ambition = req.body.ambition;
+  }
+  if (req.body.coverPicture) {
+    updateFields.coverPicture = req.body.coverPicture;
+  }
+  if (req.body.profilePicture) {
+    updateFields.profilePicture = req.body.profilePicture;
+  }
+  if (req.body.sports) {
+    updateFields.sports = req.body.sports;
+  }
+
+  User.update({ token: userToken }, { $set: updateFields }, (err) => {
+    if (err) {
+      console.error("Erreur:", err);
+      return res.json({ result: false, error: 'Erreur lors de la mise à jour du profil utilisateur' });
+    }
+    res.json({ result: true, message: 'Profil utilisateur mis à jour avec succès' });
+  });
+});
 
 
 module.exports = router;
