@@ -27,11 +27,12 @@ router.post('/signup', (req, res) => {
       const newUser = new User({
         nickname: req.body.nickname,
         mail: req.body.mail,
-        description:req.body.description,
-        ambition:req.body.ambition,
-        coverPicture:req.body.coverPicture,
-        profilePicture:req.body.profilePicture,
+        description: req.body.description,
+        ambition: req.body.ambition,
+        coverPicture: req.body.coverPicture,
+        profilePicture: req.body.profilePicture,
         password: hash,
+        isLog: true,
         adress: req.body.adress,
         sports:req.body.sports,
         token: uid2(32),
@@ -59,13 +60,21 @@ router.post('/signin', (req, res) => {
 
   User.findOne({ mail: { $regex: new RegExp(req.body.mail, 'i') } }).then(data => {
     if (data) {
-      if (bcrypt.compareSync(req.body.password, data.password)) {
-        res.json({ result: true, token: data.token, mail: data.mail });
-      } else {
-        res.json({ result: false, error: 'Mot de passe incorrect' });
-      }
+        if (bcrypt.compareSync(req.body.password, data.password)) {
+            User.updateOne(
+                { mail: req.body.mail },
+                { isLog: true }
+            ).then(() => {
+                res.json({ result: true, token: data.token, mail: data.mail });
+            }).catch(error => {
+                console.error("Erreur de la mise à jour:", error);
+                res.json({ result: false, error: 'Erreur de la mise à jour' });
+            });
+        } else {
+            res.json({ result: false, error: 'Mot de passe incorrect' });
+        }
     } else {
-      res.json({ result: false, error: 'Utilisateur introuvable' });
+        res.json({ result: false, error: 'Utilisateur introuvable' });
     }
   }).catch(error => {
     console.error("Erreur:", error);
@@ -75,15 +84,21 @@ router.post('/signin', (req, res) => {
 
 
 // LogOut router
-router.get('/logout', (res, req)=>{
-
-
-  res.json({result:true, message:'Utilisateur déconnecté'})
+router.put('/logout', (req, res)=>{
+  
+  User.updateOne(
+    { token: token },
+    { isLog: false }
+  ).then(() => {
+    res.json({ result: true, token: data.token, mail: data.mail });
+  }).catch(error => {
+    console.error("Erreur de déconnexion:", error);
+    res.json({ result: false, error: 'Erreur de déconnexion' });
+  });
 })
 
 
 //Upload cover picture router 
-
 router.post('/uploadPictureCover', async (req, res) => {
     if (req.files && req.files.coverPicture) {
       const photoPath = `./tmp/coverPicture.jpg`;
@@ -97,13 +112,12 @@ router.post('/uploadPictureCover', async (req, res) => {
         res.json({ result: false, error: resultMove });
       }
     } else {
-      res.status(400).json({ error: "Aucun fichier 'coverPicture' n'a pas été fourni dans la requête." });
+      res.status(400).json({ error: "Aucun fichier 'coverPicture' n'a été fourni dans la requête." });
     }
   });
 
 
-  //Upload profile picture router 
-
+//Upload profile picture router 
 router.post('/uploadProfileCover', async (req, res) => {
   if (req.files && req.files.profilePicture) {
     const photoPath = `./tmp/profilePicture.jpg`;
@@ -121,8 +135,6 @@ router.post('/uploadProfileCover', async (req, res) => {
   }
 });
   
-
-
 
 
 module.exports = router;
