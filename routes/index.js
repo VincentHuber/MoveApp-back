@@ -4,6 +4,7 @@ var router = express.Router();
 require('../models/connection');
 
 const User = require('../models/user');
+const Review = require('../models/review');
 const { checkBody } = require('../modules/checkBody');
 const bcrypt = require("bcrypt");
 const uid2 = require('uid2');
@@ -120,6 +121,53 @@ router.post('/uploadProfileCover', async (req, res) => {
     res.status(400).json({ error: "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête." });
   }
 });
+
+
+//diplayReview
+
+router.get('/reviews', async (req, res) => {
+  try {
+    const reviews = await Review.find();
+    res.json({ success: true, data: reviews });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+//newReview and saveReview
+
+router.post ('/review', async (req, res)=>{
+  const newReview = new Review ({
+    
+    sender: req.body.sender,
+    receiver: req.body.receiver,
+    date: req.body.date,
+    likes: req.body.likes,
+    review : req.body.review,
+  });
+
+  try {
+    const savedReview = await newReview.save();
+    res.json({ success: true, data: savedReview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+ 
+
+//diplayReview
+
+router.get('/reviews', async (req, res) => {
+  try {
+    const reviews = await Review.find();
+    res.json({ success: true, data: reviews });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
   
 
 
