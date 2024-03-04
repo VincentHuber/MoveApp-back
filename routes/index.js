@@ -137,20 +137,14 @@ router.post('/uploadProfileCover', async (req, res) => {
 });
 
 
-//diplayReview
-
-router.get('/reviews', async (req, res) => {
-  try {
-    const reviews = await Review.find();
-    res.json({ success: true, data: reviews });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
 
 //newReview and saveReview
 
 router.post ('/review', async (req, res)=>{
+  if (!checkBody(req.body, ['review'])) {
+    res.json({ result: false, error: 'Veuillez rentrer un avis' });
+    return;
+  }
   const newReview = new Review ({
     
     sender: req.body.sender,
@@ -158,7 +152,7 @@ router.post ('/review', async (req, res)=>{
     date: req.body.date,
     likes: req.body.likes,
     review : req.body.review,
-  });
+  });  
 
   try {
     const savedReview = await newReview.save();
