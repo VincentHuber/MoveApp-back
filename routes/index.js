@@ -85,7 +85,7 @@ router.post('/signin', (req, res) => {
 
 
 // LogOut router
-router.get('/logout', (req, res)=>{
+router.put('/logout', (req, res)=>{
   
   User.updateOne(
     { token: token },
@@ -138,7 +138,7 @@ router.post('/uploadProfileCover', async (req, res) => {
 
 
 
-//newReview and saveReview
+//newReview and saveReview Router
 
 router.post ('/review', async (req, res)=>{
   if (!checkBody(req.body, ['review'])) {
@@ -164,7 +164,7 @@ router.post ('/review', async (req, res)=>{
 
  
 
-//diplayReview
+//diplayReview Router
 
 router.get('/reviews', async (req, res) => {
   try {
@@ -176,7 +176,46 @@ router.get('/reviews', async (req, res) => {
 });
 
 
-  
+ 
+// Update user profile router
+router.put('/updateProfile', (req, res) => {
+  const { token, nickname, mail, password, address, description, sports, ambition, coverPicture, profilePicture } = req.body;
+
+  if (!token) {
+    return res.json({ result: false, error: "Token invalide" });
+  }
+
+  // Construire l'objet de mise à jour
+  const updateFields = {};
+  if (nickname) updateFields.nickname = nickname;
+  if (mail) updateFields.mail = mail;
+  if (password) {
+    const hash = bcrypt.hashSync(password, 10);
+    updateFields.password = hash;
+  }
+  if (address) updateFields.adress = address;
+  if (description) updateFields.description = description;
+  if (sports) updateFields.sports = sports;
+  if (ambition) updateFields.ambition = ambition;
+  if (coverPicture) updateFields.coverPicture = coverPicture;
+  if (profilePicture) updateFields.profilePicture = profilePicture;
+
+  // Mettre à jour l'utilisateur
+  User.findOneAndUpdate(
+    { token: token },
+    { $set: updateFields },
+    { new: true } 
+  ).then(updatedUser => {
+    if (updatedUser) {
+      res.json({ result: true, data: updatedUser });
+    } else {
+      res.json({ result: false, error: 'Utilisateur introuvable' });
+    }
+  }).catch(error => {
+    console.error("Erreur de mise à jour du profil:", error);
+    res.json({ result: false, error: 'Erreur de mise à jour du profil' });
+  });
+});
 
 
 module.exports = router;
