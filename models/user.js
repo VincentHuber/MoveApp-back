@@ -8,7 +8,12 @@ const userSchema = mongoose.Schema({
   adress: String,
   description:String,
   isLog: Boolean,
-  sports:[String],
+  sports:{
+    Football: Boolean,
+    Basketball: Boolean,
+    Running: Boolean,
+    Tennis: Boolean
+  },
   ambition:String,
   coverPicture:String,
   profilePicture:String,
