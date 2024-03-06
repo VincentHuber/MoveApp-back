@@ -107,7 +107,18 @@ router.put('/logout', (req, res)=>{
     console.error("Erreur de déconnexion:", error);
     res.json({ result: false, error: 'Erreur de déconnexion' });
   });
-})
+});
+
+// Get users infos
+router.get('/:nickname', (req, res) => {
+  User.find({ nickname: {$regex: new RegExp(req.params.nickname, 'i')} }).then(data => {
+    if (data) {
+      res.json({ result: true, users: data });
+    } else {
+      res.json({ result: true, error: 'Nickname not found' });
+    }
+  });
+});
 
 
 //Upload cover picture router 
