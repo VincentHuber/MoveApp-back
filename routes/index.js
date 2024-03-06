@@ -11,12 +11,15 @@ const uid2 = require('uid2');
 
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
+const uniqid = require('uniqid');
+
 
 
 // SignUp router
 router.post('/signup', (req, res) => {
-
-  if (!checkBody(req.body, ['nickname', 'mail', 'password', 'adress', 'sports'])) {
+  console.log('signup route')
+  console.log(req.body)
+  if (!checkBody(req.body, ['nickname', 'email', 'password', 'adress', 'sports'])) {
     res.json({ result: false, error: 'Un des champs est manquant ou vide' });
     return;
   }
@@ -27,15 +30,15 @@ router.post('/signup', (req, res) => {
 
       const newUser = new User({
         nickname: req.body.nickname,
-        mail: req.body.mail,
+        email: req.body.email,
         description: req.body.description,
         ambition: req.body.ambition,
-        coverPicture: req.body.coverPicture,
-        profilePicture: req.body.profilePicture,
         password: hash,
         isLog: true,
         adress: req.body.adress,
         sports:req.body.sports,
+        profilePicture:req.body.profilePicture,
+        coverPicture:req.body.coverPicture,
         token: uid2(32),
       });
      
@@ -44,10 +47,11 @@ router.post('/signup', (req, res) => {
           nickname : data.nickname,
           description : data.description,
           ambition : data.ambition,
-          coverPicture : data.coverPicture,
-          profilePicture : data.profilePicture,
           adress : data.adress,
-          sports : data.sports, });
+          sports : data.sports,
+          profilePicture:data.profilePicture,
+          coverPicture:data.coverPicture,
+         });
       });
     } else {
       res.json({ result: false, error: 'Utilisateur déjà existant' });
@@ -61,19 +65,19 @@ router.post('/signup', (req, res) => {
 
 // SignIn router
 router.post('/signin', (req, res) => {
-  if (!checkBody(req.body, ['mail', 'password'])) {
+  if (!checkBody(req.body, ['email', 'password'])) {
     res.json({ result: false, error: 'Un des champs est manquant ou vide' });
     return;
   }
 
-  User.findOne({ mail: { $regex: new RegExp(req.body.mail, 'i') } }).then(data => {
+  User.findOne({ email: { $regex: new RegExp(req.body.email, 'i') } }).then(data => {
     if (data) {
         if (bcrypt.compareSync(req.body.password, data.password)) {
             User.updateOne(
-                { mail: req.body.mail },
+                { email: req.body.email },
                 { isLog: true }
             ).then(() => {
-                res.json({ result: true, token: data.token, mail: data.mail });
+                res.json({ result: true, token: data.token, email: data.email });
             }).catch(error => {
                 console.error("Erreur de la mise à jour:", error);
                 res.json({ result: false, error: 'Erreur de la mise à jour' });
@@ -98,7 +102,7 @@ router.put('/logout', (req, res)=>{
     { token: token },
     { isLog: false }
   ).then(() => {
-    res.json({ result: true, token: data.token, mail: data.mail });
+    res.json({ result: true, token: data.token, email: data.email });
   }).catch(error => {
     console.error("Erreur de déconnexion:", error);
     res.json({ result: false, error: 'Erreur de déconnexion' });
@@ -109,26 +113,30 @@ router.put('/logout', (req, res)=>{
 //Upload cover picture router 
 router.post('/uploadPictureCover', async (req, res) => {
     if (req.files && req.files.coverPicture) {
-      const photoPath = `./tmp/coverPicture.jpg`;
-      const resultMove = await req.files.coverPicture.mv(photoPath);
-  
-      if (!resultMove) {
-        const resultCloudinary = await cloudinary.uploader.upload(photoPath);
-        fs.unlinkSync(photoPath);
-        res.json({ result: true, url: resultCloudinary.secure_url });
-      } else {
-        res.json({ result: false, error: resultMove });
-      }
+        const photoPath = `./tmp/${uniqid()}.jpg`;
+        const resultMove = await req.files.coverPicture.mv(photoPath);
+        
+        if (!resultMove) {
+          console.log('in condition 2')
+            const resultCloudinary = await cloudinary.uploader.upload(photoPath);
+            fs.unlinkSync(photoPath);
+            res.json({ result: true, url: resultCloudinary.secure_url });
+        } else {
+            res.json({ result: false, error: resultMove });
+        }
     } else {
-      res.status(400).json({ error: "Aucun fichier 'coverPicture' n'a été fourni dans la requête." });
+        console.error("Erreur: Aucun fichier 'coverPicture' n'a été fourni dans la requête.");
+        res.status(400).json({
+            error: "Aucun fichier 'coverPicture' n'a été fourni dans la requête."
+        });
     }
-  });
+});
 
 
 //Upload profile picture router 
 router.post('/uploadProfileCover', async (req, res) => {
   if (req.files && req.files.profilePicture) {
-    const photoPath = `./tmp/profilePicture.jpg`;
+    const photoPath = `./tmp/${uniqid()}.jpg`;
     const resultMove = await req.files.profilePicture.mv(photoPath);
 
     if (!resultMove) {
@@ -142,7 +150,6 @@ router.post('/uploadProfileCover', async (req, res) => {
     res.status(400).json({ error: "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête." });
   }
 });
-
 
 
 //newReview and saveReview Router
@@ -182,11 +189,10 @@ router.get('/reviews', async (req, res) => {
   }
 });
 
-
  
 // Update user profile router
 router.put('/updateProfile', (req, res) => {
-  const { token, nickname, mail, password, address, description, sports, ambition, coverPicture, profilePicture } = req.body;
+  const { token, nickname, email, password, address, description, sports, ambition, coverPicture, profilePicture } = req.body;
 
   if (!token) {
     return res.json({ result: false, error: "Token invalide" });
@@ -195,7 +201,7 @@ router.put('/updateProfile', (req, res) => {
   // Construire l'objet de mise à jour
   const updateFields = {};
   if (nickname) updateFields.nickname = nickname;
-  if (mail) updateFields.mail = mail;
+  if (email) updateFields.email = email;
   if (password) {
     const hash = bcrypt.hashSync(password, 10);
     updateFields.password = hash;
