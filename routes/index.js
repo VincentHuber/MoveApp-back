@@ -4,6 +4,7 @@ var router = express.Router();
 require('../models/connection');
 
 const User = require('../models/user');
+const Review = require('../models/review');
 const { checkBody } = require('../modules/checkBody');
 const bcrypt = require("bcrypt");
 const uid2 = require('uid2');
@@ -39,7 +40,14 @@ router.post('/signup', (req, res) => {
       });
      
       newUser.save().then(data => {
-        res.json({ result: true, data});
+        res.json({ result: true, 
+          nickname : data.nickname,
+          description : data.description,
+          ambition : data.ambition,
+          coverPicture : data.coverPicture,
+          profilePicture : data.profilePicture,
+          adress : data.adress,
+          sports : data.sports, });
       });
     } else {
       res.json({ result: false, error: 'Utilisateur déjà existant' });
@@ -145,7 +153,87 @@ router.post('/uploadProfileCover', async (req, res) => {
     res.status(400).json({ error: "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête." });
   }
 });
-  
+
+
+
+//newReview and saveReview Router
+
+router.post ('/review', async (req, res)=>{
+  if (!checkBody(req.body, ['review'])) {
+    res.json({ result: false, error: 'Veuillez rentrer un avis' });
+    return;
+  }
+  const newReview = new Review ({
+    
+    sender: req.body.sender,
+    receiver: req.body.receiver,
+    date: req.body.date,
+    likes: req.body.likes,
+    review : req.body.review,
+  });  
+
+  try {
+    const savedReview = await newReview.save();
+    res.json({ success: true, data: savedReview });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+ 
+
+//diplayReview Router
+
+router.get('/reviews', async (req, res) => {
+  try {
+    const reviews = await Review.find();
+    res.json({ success: true, data: reviews });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
+ 
+// Update user profile router
+router.put('/updateProfile', (req, res) => {
+  const { token, nickname, mail, password, address, description, sports, ambition, coverPicture, profilePicture } = req.body;
+
+  if (!token) {
+    return res.json({ result: false, error: "Token invalide" });
+  }
+
+  // Construire l'objet de mise à jour
+  const updateFields = {};
+  if (nickname) updateFields.nickname = nickname;
+  if (mail) updateFields.mail = mail;
+  if (password) {
+    const hash = bcrypt.hashSync(password, 10);
+    updateFields.password = hash;
+  }
+  if (address) updateFields.adress = address;
+  if (description) updateFields.description = description;
+  if (sports) updateFields.sports = sports;
+  if (ambition) updateFields.ambition = ambition;
+  if (coverPicture) updateFields.coverPicture = coverPicture;
+  if (profilePicture) updateFields.profilePicture = profilePicture;
+
+  // Mettre à jour l'utilisateur
+  User.findOneAndUpdate(
+    { token: token },
+    { $set: updateFields },
+    { new: true } 
+  ).then(updatedUser => {
+    if (updatedUser) {
+      res.json({ result: true, data: updatedUser });
+    } else {
+      res.json({ result: false, error: 'Utilisateur introuvable' });
+    }
+  }).catch(error => {
+    console.error("Erreur de mise à jour du profil:", error);
+    res.json({ result: false, error: 'Erreur de mise à jour du profil' });
+  });
+});
 
 
 module.exports = router;
