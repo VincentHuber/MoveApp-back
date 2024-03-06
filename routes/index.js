@@ -186,11 +186,13 @@ router.get('/reviews', async (req, res) => {
  
 // Update user profile router
 router.put('/updateProfile', (req, res) => {
-  const { token, nickname, mail, password, address, description, sports, ambition, coverPicture, profilePicture } = req.body;
+  const { /*token*/ nickname, mail, password, address, description, sports, ambition, coverPicture, profilePicture } = req.body;
 
-  if (!token) {
-    return res.json({ result: false, error: "Token invalide" });
-  }
+  // if (!token) {
+  //   return res.json({ result: false, error: "Token invalide" });
+  // }
+
+  const token = "EAOLXvw_l-HndjzCLJxiaOlA-2uhnadY"
 
   // Construire l'objet de mise à jour
   const updateFields = {};
