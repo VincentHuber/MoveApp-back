@@ -40,7 +40,14 @@ router.post('/signup', (req, res) => {
       });
      
       newUser.save().then(data => {
-        res.json({ result: true, data});
+        res.json({ result: true, 
+          nickname : data.nickname,
+          description : data.description,
+          ambition : data.ambition,
+          coverPicture : data.coverPicture,
+          profilePicture : data.profilePicture,
+          adress : data.adress,
+          sports : data.sports, });
       });
     } else {
       res.json({ result: false, error: 'Utilisateur déjà existant' });
