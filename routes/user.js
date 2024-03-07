@@ -12,7 +12,7 @@ const uid2 = require('uid2');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const uniqid = require('uniqid');
-
+// A SUPPRIMER
 
 
 // SignUp router
@@ -46,6 +46,7 @@ router.post('/user/signup', (req, res) => {
         res.json({ result: true, 
           nickname : data.nickname,
           description : data.description,
+          email: data.email,
           ambition : data.ambition,
           adress : data.adress,
           sports : data.sports,
@@ -65,19 +66,20 @@ router.post('/user/signup', (req, res) => {
 
 // SignIn router
 router.post('/user/signin', (req, res) => {
-    if (!checkBody(req.body, ['nickname', 'password'])) {
+    if (!checkBody(req.body, ['email', 'password'])) {
       res.json({ result: false, error: 'Un des champs est manquant ou vide' });
       return;
-    }
+    } 
   
-    User.findOne({ nickname: { $regex: new RegExp(req.body.nickname, 'i') } }).then(data => {
+    User.findOne({ email: { $regex: new RegExp(req.body.email, 'i') } }).then(data => {
       if (data) {
+        console.log('2 ', error)
           if (bcrypt.compareSync(req.body.password, data.password)) {
               User.updateOne(
-                  { nickname: req.body.nickname },
+                  { email: req.body.email },
                   { isLog: true }
               ).then(() => {
-                  res.json({ result: true, token: data.token, nickname: data.nickname });
+                  res.json({ result: true, token: data.token, email: data.email });
               }).catch(error => {
                   console.error("Erreur de la mise à jour:", error);
                   res.json({ result: false, error: 'Erreur de la mise à jour' });
@@ -97,6 +99,11 @@ router.post('/user/signin', (req, res) => {
 
 // LogOut router
 router.put('/user/logout', (req, res)=>{
+    const { token } = req.body;
+
+    if (!token) {
+        return res.json({ result: false, error: "Token invalide" });
+    }
   
   User.updateOne(
     { token: token },
