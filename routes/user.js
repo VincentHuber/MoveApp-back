@@ -65,35 +65,35 @@ router.post('/user/signup', (req, res) => {
 
 // SignIn router
 router.post('/user/signin', (req, res) => {
-  if (!checkBody(req.body, ['email', 'password'])) {
-    res.json({ result: false, error: 'Un des champs est manquant ou vide' });
-    return;
-  }
-
-  User.findOne({ email: { $regex: new RegExp(req.body.email, 'i') } }).then(data => {
-    if (data) {
-        if (bcrypt.compareSync(req.body.password, data.password)) {
-            User.updateOne(
-                { email: req.body.email },
-                { isLog: true }
-            ).then(() => {
-                res.json({ result: true, token: data.token, email: data.email });
-            }).catch(error => {
-                console.error("Erreur de la mise à jour:", error);
-                res.json({ result: false, error: 'Erreur de la mise à jour' });
-            });
-        } else {
-            res.json({ result: false, error: 'Mot de passe incorrect' });
-        }
-    } else {
-        res.json({ result: false, error: 'Utilisateur introuvable' });
+    if (!checkBody(req.body, ['nickname', 'password'])) {
+      res.json({ result: false, error: 'Un des champs est manquant ou vide' });
+      return;
     }
-  }).catch(error => {
-    console.error("Erreur:", error);
-    res.json({ result: false, error: 'Erreur' });
+  
+    User.findOne({ nickname: { $regex: new RegExp(req.body.nickname, 'i') } }).then(data => {
+      if (data) {
+          if (bcrypt.compareSync(req.body.password, data.password)) {
+              User.updateOne(
+                  { nickname: req.body.nickname },
+                  { isLog: true }
+              ).then(() => {
+                  res.json({ result: true, token: data.token, nickname: data.nickname });
+              }).catch(error => {
+                  console.error("Erreur de la mise à jour:", error);
+                  res.json({ result: false, error: 'Erreur de la mise à jour' });
+              });
+          } else {
+              res.json({ result: false, error: 'Mot de passe incorrect' });
+          }
+      } else {
+          res.json({ result: false, error: 'Utilisateur introuvable' });
+      }
+    }).catch(error => {
+      console.error("Erreur:", error);
+      res.json({ result: false, error: 'Erreur' });
+    });
   });
-});
-
+  
 
 // LogOut router
 router.put('/user/logout', (req, res)=>{
