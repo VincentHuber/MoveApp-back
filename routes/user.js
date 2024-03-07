@@ -12,7 +12,6 @@ const uid2 = require('uid2');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const uniqid = require('uniqid');
-// A SUPPRIMER
 
 
 // SignUp router
