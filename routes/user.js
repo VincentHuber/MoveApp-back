@@ -13,6 +13,8 @@ const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 const uniqid = require('uniqid');
 
+const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
 
 // SignUp router
 router.post('/user/signup', (req, res) => {
@@ -42,15 +44,7 @@ router.post('/user/signup', (req, res) => {
       });
      
       newUser.save().then(data => {
-        res.json({ result: true, 
-          nickname : data.nickname,
-          description : data.description,
-          ambition : data.ambition,
-          adress : data.adress,
-          sports : data.sports,
-          profilePicture:data.profilePicture,
-          coverPicture:data.coverPicture,
-         });
+        res.json({ result: true, user: data });
       });
     } else {
       res.json({ result: false, error: 'Utilisateur déjà existant' });
@@ -64,38 +58,52 @@ router.post('/user/signup', (req, res) => {
 
 // SignIn router
 router.post('/user/signin', (req, res) => {
-  if (!checkBody(req.body, ['email', 'password'])) {
-    res.json({ result: false, error: 'Un des champs est manquant ou vide' });
-    return;
-  }
+    if (!checkBody(req.body, ['email', 'password'])) {
+      res.json({ result: false, error: 'Un des champs est manquant ou vide' });
+      return;
+    } 
+  
+    // User.findOne({ email: { $regex: new RegExp(req.body.email, 'i') } }).then(data => {
+    //   if (data) {
+    //     console.log('2 ', error)
+    //       if (bcrypt.compareSync(req.body.password, data.password)) {
+    //           User.updateOne(
+    //               { email: req.body.email },
+    //               { isLog: true }
+    //           ).then(() => {
+    //               res.json({ result: true, token: data.token, email: data.email });
+    //           }).catch(error => {
+    //               console.error("Erreur de la mise à jour:", error);
+    //               res.json({ result: false, error: 'Erreur de la mise à jour' });
+    //           });
+    //       } else {
+    //           res.json({ result: false, error: 'Mot de passe incorrect' });
+    //       }
+    //   } else {
+    //       res.json({ result: false, error: 'Utilisateur introuvable' });
+    //   }
+    // }).catch(error => {
+    //   console.error("Erreur:", error);
+    //   res.json({ result: false, error: 'Erreur' });
+    // });
 
-  User.findOne({ email: { $regex: new RegExp(req.body.email, 'i') } }).then(data => {
-    if (data) {
-        if (bcrypt.compareSync(req.body.password, data.password)) {
-            User.updateOne(
-                { email: req.body.email },
-                { isLog: true }
-            ).then(() => {
-                res.json({ result: true, token: data.token, email: data.email });
-            }).catch(error => {
-                console.error("Erreur de la mise à jour:", error);
-                res.json({ result: false, error: 'Erreur de la mise à jour' });
-            });
+    User.findOne({ email: { $regex: new RegExp(req.body.email, 'i') } }).then(data => {
+        if (data && bcrypt.compareSync(req.body.password, data.password)) {
+          res.json({ result: true, email: data.email, token: data.token });
         } else {
-            res.json({ result: false, error: 'Mot de passe incorrect' });
+          res.json({ result: false, error: 'Utilisateur non trouvé ou mot de passe erroné' });
         }
-    } else {
-        res.json({ result: false, error: 'Utilisateur introuvable' });
-    }
-  }).catch(error => {
-    console.error("Erreur:", error);
-    res.json({ result: false, error: 'Erreur' });
-  });
-});
-
+      });
+    });
+  
 
 // LogOut router
 router.put('/user/logout', (req, res)=>{
+    const { token } = req.body;
+
+    if (!token) {
+        return res.json({ result: false, error: "Token invalide" });
+    }
   
   User.updateOne(
     { token: token },
@@ -202,7 +210,7 @@ router.get('/user/reviews', async (req, res) => {
  
 // Update user profile router
 router.put('/user/updateProfile', (req, res) => {
-  const { token, nickname, email, password, address, description, sports, ambition, coverPicture, profilePicture } = req.body;
+  const { token, nickname, email, password, adress, description, sports, ambition, coverPicture, profilePicture } = req.body;
 
   if (!token) {
     return res.json({ result: false, error: "Token invalide" });
@@ -216,7 +224,7 @@ router.put('/user/updateProfile', (req, res) => {
     const hash = bcrypt.hashSync(password, 10);
     updateFields.password = hash;
   }
-  if (address) updateFields.adress = address;
+  if (adress) updateFields.adress = adress;
   if (description) updateFields.description = description;
   if (sports) updateFields.sports = sports;
   if (ambition) updateFields.ambition = ambition;
