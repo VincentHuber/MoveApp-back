@@ -204,6 +204,7 @@ router.get('/user/reviews', async (req, res) => {
 // Update user profile router
 router.put('/user/updateProfile', (req, res) => {
   const { token, nickname, email, password, address, description, sports, ambition, coverPicture, profilePicture } = req.body;
+  console.log({token, nickname, email, password, address, description, sports, ambition, coverPicture, profilePicture})
 
   if (!token) {
     return res.json({ result: false, error: "Token invalide" });
