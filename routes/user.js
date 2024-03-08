@@ -15,6 +15,54 @@ const uniqid = require('uniqid');
 
 const EMAIL_REGEX = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
+//Upload cover picture router 
+router.post('/user/uploadPictureCover/:token', async (req, res) => {
+  const token = req.params.token;
+
+  if (req.files && req.files.coverPicture) {
+      const photoPath = `./tmp/${uniqid()}.jpg`;
+      const resultMove = await req.files.coverPicture.mv(photoPath);
+      
+      if (!resultMove) {
+        console.log('in condition 2')
+          const resultCloudinary = await cloudinary.uploader.upload(photoPath);
+          fs.unlinkSync(photoPath);
+          await User.updateOne({ token }, { coverPicture: resultCloudinary.secure_url })
+          res.json({ result: true, url: resultCloudinary.secure_url });
+      } else {
+          res.json({ result: false, error: resultMove });
+      }
+  } else {
+      console.error("Erreur: Aucun fichier 'coverPicture' n'a été fourni dans la requête.");
+      res.status(400).json({
+          error: "Aucun fichier 'coverPicture' n'a été fourni dans la requête."
+      });
+  }
+});
+
+
+//Upload profile picture router 
+router.post('/user/uploadProfileCover/:token', async (req, res) => {
+  const token = req.params.token;
+  
+if (req.files && req.files.profilePicture) {
+  const photoPath = `./tmp/${uniqid()}.jpg`;
+  const resultMove = await req.files.profilePicture.mv(photoPath);
+
+  if (!resultMove) {
+    const resultCloudinary = await cloudinary.uploader.upload(photoPath);
+    fs.unlinkSync(photoPath);
+    await User.updateOne({ token }, { profilePicture: resultCloudinary.secure_url })
+    res.json({ result: true, url: resultCloudinary.secure_url });
+
+  } else {
+    res.json({ result: false, error: resultMove });
+  }
+} else {
+  res.status(400).json({ error: "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête." });
+}
+});
+
 
 // SignUp router
 router.post('/user/signup', (req, res) => {
@@ -44,6 +92,7 @@ router.post('/user/signup', (req, res) => {
       });
      
       newUser.save().then(data => {
+        console.log('back : ', data.profilePicture)
         res.json({ result: true, user: data });
       });
     } else {
@@ -62,30 +111,6 @@ router.post('/user/signin', (req, res) => {
       res.json({ result: false, error: 'Un des champs est manquant ou vide' });
       return;
     } 
-  
-    // User.findOne({ email: { $regex: new RegExp(req.body.email, 'i') } }).then(data => {
-    //   if (data) {
-    //     console.log('2 ', error)
-    //       if (bcrypt.compareSync(req.body.password, data.password)) {
-    //           User.updateOne(
-    //               { email: req.body.email },
-    //               { isLog: true }
-    //           ).then(() => {
-    //               res.json({ result: true, token: data.token, email: data.email });
-    //           }).catch(error => {
-    //               console.error("Erreur de la mise à jour:", error);
-    //               res.json({ result: false, error: 'Erreur de la mise à jour' });
-    //           });
-    //       } else {
-    //           res.json({ result: false, error: 'Mot de passe incorrect' });
-    //       }
-    //   } else {
-    //       res.json({ result: false, error: 'Utilisateur introuvable' });
-    //   }
-    // }).catch(error => {
-    //   console.error("Erreur:", error);
-    //   res.json({ result: false, error: 'Erreur' });
-    // });
 
     User.findOne({ email: { $regex: new RegExp(req.body.email, 'i') } }).then(data => {
         if (data && bcrypt.compareSync(req.body.password, data.password)) {
@@ -125,48 +150,6 @@ router.get('/user/:nickname', (req, res) => {
       res.json({ result: true, error: 'Nickname not found' });
     }
   });
-});
-
-
-//Upload cover picture router 
-router.post('/user/uploadPictureCover', async (req, res) => {
-    if (req.files && req.files.coverPicture) {
-        const photoPath = `./tmp/${uniqid()}.jpg`;
-        const resultMove = await req.files.coverPicture.mv(photoPath);
-        
-        if (!resultMove) {
-          console.log('in condition 2')
-            const resultCloudinary = await cloudinary.uploader.upload(photoPath);
-            fs.unlinkSync(photoPath);
-            res.json({ result: true, url: resultCloudinary.secure_url });
-        } else {
-            res.json({ result: false, error: resultMove });
-        }
-    } else {
-        console.error("Erreur: Aucun fichier 'coverPicture' n'a été fourni dans la requête.");
-        res.status(400).json({
-            error: "Aucun fichier 'coverPicture' n'a été fourni dans la requête."
-        });
-    }
-});
-
-
-//Upload profile picture router 
-router.post('/user/uploadProfileCover', async (req, res) => {
-  if (req.files && req.files.profilePicture) {
-    const photoPath = `./tmp/${uniqid()}.jpg`;
-    const resultMove = await req.files.profilePicture.mv(photoPath);
-
-    if (!resultMove) {
-      const resultCloudinary = await cloudinary.uploader.upload(photoPath);
-      fs.unlinkSync(photoPath);
-      res.json({ result: true, url: resultCloudinary.secure_url });
-    } else {
-      res.json({ result: false, error: resultMove });
-    }
-  } else {
-    res.status(400).json({ error: "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête." });
-  }
 });
 
 
