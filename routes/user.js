@@ -116,18 +116,6 @@ router.put('/user/logout', (req, res)=>{
   });
 });
 
-// Get users infos
-router.get('/user/:nickname', (req, res) => {
-  User.find({ nickname: {$regex: new RegExp(req.params.nickname, 'i')} }).then(data => {
-    if (data) {
-      res.json({ result: true, users: data });
-    } else {
-      res.json({ result: true, error: 'Nickname not found' });
-    }
-  });
-});
-
-
 //Upload cover picture router 
 router.post('/user/uploadPictureCover', async (req, res) => {
     if (req.files && req.files.coverPicture) {
@@ -194,8 +182,6 @@ router.post ('/user/review', async (req, res)=>{
   }
 });
 
- 
-
 //diplayReview Router
 
 router.get('/user/reviews', async (req, res) => {
@@ -245,6 +231,19 @@ router.put('/user/updateProfile', (req, res) => {
   }).catch(error => {
     console.error("Erreur de mise à jour du profil:", error);
     res.json({ result: false, error: 'Erreur de mise à jour du profil' });
+  });
+});
+
+// Get users infos
+router.get('/user/:token', (req, res) => {
+  console.log("lol");
+  User.findOne({ token: req.params.token }).then(data => {
+    console.log("data", data);
+    if (data) {
+      res.json({ result: true, user: data });
+    } else {
+      res.json({ result: true, error: 'Nickname not found' });
+    }
   });
 });
 
