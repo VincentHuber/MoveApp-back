@@ -165,7 +165,7 @@ router.post('/user/uploadProfileCover', async (req, res) => {
 
 //newReview and saveReview Router
 
-router.post ('/user/review', async (req, res)=>{
+/*router.post ('/user/review', async (req, res)=>{
   if (!checkBody(req.body, ['review'])) {
     res.json({ result: false, error: 'Veuillez rentrer un avis' });
     return;
@@ -198,7 +198,7 @@ router.get('/user/reviews', async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
-});
+});*/
 
  
 // Update user profile router
