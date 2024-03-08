@@ -209,8 +209,9 @@ router.get('/user/reviews', async (req, res) => {
 
  
 // Update user profile router
-router.put('/user/updateProfile', (req, res) => {
-  const { token, nickname, email, password, adress, description, sports, ambition, coverPicture, profilePicture } = req.body;
+router.put('/user/updateProfile/:token', (req, res) => {
+  const { nickname, email, password, adress, description, sports, ambition, coverPicture, profilePicture } = req.body;
+  const token = req.params.token
 
   if (!token) {
     return res.json({ result: false, error: "Token invalide" });
@@ -234,8 +235,7 @@ router.put('/user/updateProfile', (req, res) => {
   // Mettre à jour l'utilisateur
   User.findOneAndUpdate(
     { token: token },
-    { $set: updateFields },
-    { new: true } 
+    { $set: updateFields }
   ).then(updatedUser => {
     if (updatedUser) {
       res.json({ result: true, data: updatedUser });
