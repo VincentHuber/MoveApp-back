@@ -10,7 +10,7 @@ const { checkBody } = require('../modules/checkBody');
 //addReview and saveReview Router
 
 router.post ('/review', async (req, res)=>{
-    if (!checkBody(req.body, ['review'])) {
+    if (!checkBody(req.body, ['review', 'stars'])) {
       return res.status(400).json({ result: false, error: 'Veuillez rentrer un avis' });
     }
     const newReview = new Review ({
@@ -18,15 +18,15 @@ router.post ('/review', async (req, res)=>{
       sender: req.body.sender,
       receiver: req.body.receiver,
       date: req.body.date,
-      likes: req.body.likes,
+      stars: req.body.stars,
       review : req.body.review,
     });  
   
     try {
       const savedReview = await newReview.save();
-      res.json({ success: true, data: savedReview });
+      return res.json({ success: true, data: savedReview });
     } catch (error) {
-      res.status(500).json({ success: false, error: error.message });
+      return res.status(500).json({ success: false, error: error.message });
     }
   });
   
