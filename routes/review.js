@@ -10,7 +10,7 @@ const { checkBody } = require('../modules/checkBody');
 //addReview and saveReview Router
 
 router.post ('/review', async (req, res)=>{
-    if (!checkBody(req.body, ['review', 'stars'])) {
+    if (!checkBody(req.body, ['stars','review', ])) {
       return res.status(400).json({ result: false, error: 'Veuillez rentrer un avis' });
     }
     const newReview = new Review ({
