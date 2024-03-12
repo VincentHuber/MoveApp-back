@@ -18,6 +18,7 @@ const userSchema = mongoose.Schema({
   coverPicture:String,
   profilePicture:String,
   token: String,
+  match:[],
 });
 
 const User = mongoose.model('users', userSchema);
