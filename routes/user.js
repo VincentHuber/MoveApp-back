@@ -107,19 +107,28 @@ router.post('/user/signup', (req, res) => {
 
 // SignIn router
 router.post('/user/signin', (req, res) => {
-    if (!checkBody(req.body, ['email', 'password'])) {
+   
+try{
+  if (!checkBody(req.body, ['email', 'password'])) {
       res.json({ result: false, error: 'Un des champs est manquant ou vide' });
       return;
     } 
 
     User.findOne({ email: { $regex: new RegExp(req.body.email, 'i') } }).then(data => {
-        if (data && bcrypt.compareSync(req.body.password, data.password)) {
+     console.log("data => ", data)
+     console.log("password resp => ", bcrypt.compareSync(req.body.password, data.password))
+      if (data && bcrypt.compareSync(req.body.password, data.password)) {
+
           res.json({ result: true, email: data.email, token: data.token });
         } else {
           res.json({ result: false, error: 'Utilisateur non trouvé ou mot de passe erroné' });
         }
-      });
-    });
+      }
+      
+      );
+    }catch(error){
+      res.status(500).json({message:"error", error})
+    }});
   
 
 // LogOut router
@@ -183,6 +192,9 @@ router.put('/user/updateProfile/:token', (req, res) => {
   const { nickname, email, password, adress, description, sports, ambition, coverPicture, profilePicture } = req.body;
   const token = req.params.token
 
+  console.log("password => ", password)
+  console.log("passwordBool", Boolean(password))
+
   if (!token) {
     return res.json({ result: false, error: "Token invalide" });
   }
@@ -191,10 +203,6 @@ router.put('/user/updateProfile/:token', (req, res) => {
   const updateFields = {};
   if (nickname) updateFields.nickname = nickname;
   if (email) updateFields.email = email;
-  if (password) {
-    const hash = bcrypt.hashSync(password, 10);
-    updateFields.password = hash;
-  }
   if (adress) updateFields.adress = adress;
   if (description) updateFields.description = description;
   if (sports) updateFields.sports = sports;
