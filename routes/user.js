@@ -109,19 +109,6 @@ router.put("/user/logout", (req, res) => {
     });
 });
 
-// Get users infos
-router.get("/user/:nickname", (req, res) => {
-  User.find({
-    nickname: { $regex: new RegExp(req.params.nickname, "i") },
-  }).then((data) => {
-    if (data) {
-      res.json({ result: true, users: data });
-    } else {
-      res.json({ result: true, error: "Nickname not found" });
-    }
-  });
-});
-
 //Upload cover picture router
 router.post("/user/uploadPictureCover", async (req, res) => {
   if (req.files && req.files.coverPicture) {
@@ -160,12 +147,10 @@ router.post("/user/uploadProfileCover", async (req, res) => {
       res.json({ result: false, error: resultMove });
     }
   } else {
-    res
-      .status(400)
-      .json({
-        error:
-          "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête.",
-      });
+    res.status(400).json({
+      error:
+        "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête.",
+    });
   }
 });
 
@@ -216,6 +201,29 @@ router.put("/user/updateProfile", (req, res) => {
       console.error("Erreur de mise à jour du profil:", error);
       res.json({ result: false, error: "Erreur de mise à jour du profil" });
     });
+});
+
+//nouvelle route pour recuperer la donnée profilepicture et nickname
+router.get("/user/ReviewUser", async (req, res) => {
+  try {
+    const user = await User.findOne().select("nickname profilePicture");
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get users infos
+router.get("/user/:nickname", (req, res) => {
+  User.find({
+    nickname: { $regex: new RegExp(req.params.nickname, "i") },
+  }).then((data) => {
+    if (data) {
+      res.json({ result: true, users: data });
+    } else {
+      res.json({ result: true, error: "Nickname not found" });
+    }
+  });
 });
 
 module.exports = router;
