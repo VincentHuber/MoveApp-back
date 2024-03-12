@@ -239,5 +239,27 @@ router.get('/user/:token', (req, res) => {
   });
 });
 
+// Get pour récupérer toutes les infos des autres users
+router.get('/users', (req, res) => {
+  
+  let filter = {};
+  if (req.query.nickname) {
+    filter.nickname = req.query.nickname;
+  }
+
+  
+  User.find(filter).then(data => {
+    if (data.length > 0) { 
+      res.json({ result: true, users: data });
+    } else {
+      res.json({ result: false, error: 'No users found' });
+    }
+  }).catch(error => {
+    console.error("Error fetching users from database:", error);
+    res.json({ result: false, error: 'Error fetching users from database' });
+  });
+});
+
+
 
 module.exports = router;
