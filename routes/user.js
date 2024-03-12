@@ -7,10 +7,10 @@ const User = require("../models/user");
 const Review = require("../models/review");
 const { checkBody } = require("../modules/checkBody");
 const bcrypt = require("bcrypt");
-<<<<<<< HEAD
+
 const uid2 = require("uid2");
-=======
-const uid2 = require('uid2');
+
+
 
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
@@ -65,11 +65,9 @@ if (req.files && req.files.profilePicture) {
   res.status(400).json({ error: "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête." });
 }
 });
->>>>>>> cd49e634efe6ecfcc0410c7d1676179d5a02f31f
 
-const cloudinary = require("cloudinary").v2;
-const fs = require("fs");
-const uniqid = require("uniqid");
+
+
 
 // SignUp router
 router.post("/user/signup", (req, res) => {
@@ -87,7 +85,7 @@ router.post("/user/signup", (req, res) => {
       if (data === null) {
         const hash = bcrypt.hashSync(req.body.password, 10);
 
-<<<<<<< HEAD
+ HEAD
         const newUser = new User({
           nickname: req.body.nickname,
           email: req.body.email,
@@ -122,7 +120,7 @@ router.post("/user/signup", (req, res) => {
       console.error("Erreur:", error);
       res.json({ result: false, error: "Erreur" });
     });
-=======
+
       const newUser = new User({
         nickname: req.body.nickname,
         email: req.body.email,
@@ -140,19 +138,25 @@ router.post("/user/signup", (req, res) => {
       newUser.save().then(data => {
         console.log('back : ', data.profilePicture)
         res.json({ result: true, user: data });
-      });
-    } else {
-      res.json({ result: false, error: 'Utilisateur déjà existant' });
-    }
-  }).catch(error => {
+      }).catch(error => {
     console.error("Erreur:", error);
     res.json({ result: false, error: 'Erreur' });
-  });
->>>>>>> cd49e634efe6ecfcc0410c7d1676179d5a02f31f
-});
+  })
+})
+  /*newUser.save()
+  .then(data => {
+    console.log('back : ', data.profilePicture);
+    res.json({ result: true, user: data });
+  })
+  .catch(error => {
+    console.error("Erreur:", error);
+    res.json({ result: false, error: 'Erreur' });
+  });*/
+
+
 
 // SignIn router
-<<<<<<< HEAD
+
 router.post("/user/signin", (req, res) => {
   if (!checkBody(req.body, ["email", "password"])) {
     res.json({ result: false, error: "Un des champs est manquant ou vide" });
@@ -254,8 +258,10 @@ router.put("/user/updateProfile", (req, res) => {
     ambition,
     coverPicture,
     profilePicture,
-  } = req.body;
-=======
+  } = req.body; 
+
+});
+
 router.post('/user/signin', (req, res) => {
    
 try{
@@ -344,7 +350,7 @@ router.put('/user/updateProfile/:token', (req, res) => {
 
   console.log("password => ", password)
   console.log("passwordBool", Boolean(password))
->>>>>>> cd49e634efe6ecfcc0410c7d1676179d5a02f31f
+
 
   if (!token) {
     return res.json({ result: false, error: "Token invalide" });
@@ -362,7 +368,7 @@ router.put('/user/updateProfile/:token', (req, res) => {
   if (profilePicture) updateFields.profilePicture = profilePicture;
 
   // Mettre à jour l'utilisateur
-<<<<<<< HEAD
+
   User.findOneAndUpdate({ token: token }, { $set: updateFields }, { new: true })
     .then((updatedUser) => {
       if (updatedUser) {
@@ -394,23 +400,23 @@ router.get("/user/:nickname", (req, res) => {
   }).then((data) => {
     if (data) {
       res.json({ result: true, users: data });
-=======
+
   User.findOneAndUpdate(
     { token: token },
     { $set: updateFields }
   ).then(updatedUser => {
     if (updatedUser) {
       res.json({ result: true, data: updatedUser });
->>>>>>> cd49e634efe6ecfcc0410c7d1676179d5a02f31f
+
     } else {
       res.json({ result: true, error: "Nickname not found" });
     }
   });
-});
+}}); })
 
-<<<<<<< HEAD
-module.exports = router;
-=======
+
+
+
 // Get users infos
 router.get('/user/:token', (req, res) => {
   console.log("lol");
@@ -445,7 +451,5 @@ router.get('/users', (req, res) => {
   });
 });
 
-
-
 module.exports = router;
->>>>>>> cd49e634efe6ecfcc0410c7d1676179d5a02f31f
+
