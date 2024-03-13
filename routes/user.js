@@ -73,6 +73,7 @@ router.post('/user/signup', (req, res) => {
     return;
   }
 
+
   User.findOne({ nickname: { $regex: new RegExp(req.body.nickname, 'i') } }).then(data => {
     if (data === null) {
       const hash = bcrypt.hashSync(req.body.password, 10);
