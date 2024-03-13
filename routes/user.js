@@ -262,5 +262,38 @@ router.get('/users', (req, res) => {
 });
 
 
+//nouvelle route pour recuperer la donnée profilepicture et nickname
+router.get("/user/ReviewUser", async (req, res) => {
+  try {
+    const user = await User.findOne().select("nickname profilePicture");
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+//Route pour ajouter des matchs
+router.put("/user/match/:token", async (req, res) => {
+  try {
+    const newUserId = req.body.newUserId;
+    const token = req.params.token;
+
+    const updatedUser = await User.findOneAndUpdate(
+      { token: token },
+      { $push: { match: newUserId } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Utilisateur non trouvé", error },);
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.log("Erreur lors de la mise à jour du match :", error);
+    res.status(500).json({ message: "Erreur lors de la mise à jour du match" });
+  }
+});
 
 module.exports = router;
