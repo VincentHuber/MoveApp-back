@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
 
 const reviewSchema = mongoose.Schema({
-  sender: String, //{ type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-  //receiver: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+  sender: String, 
   date: Date,
   stars: Number,
   review: String,

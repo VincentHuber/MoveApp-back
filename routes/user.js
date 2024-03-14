@@ -4,7 +4,6 @@ var router = express.Router();
 require("../models/connection");
 
 const User = require("../models/user");
-const Review = require("../models/review");
 const { checkBody } = require("../modules/checkBody");
 const bcrypt = require("bcrypt");
 const uid2 = require("uid2");
@@ -163,40 +162,6 @@ router.put("/user/logout", (req, res) => {
       console.error("Erreur de déconnexion:", error);
       res.json({ result: false, error: "Erreur de déconnexion" });
     });
-});
-
-//newReview and saveReview Router
-
-router.post("/user/review", async (req, res) => {
-  if (!checkBody(req.body, ["review"])) {
-    res.json({ result: false, error: "Veuillez rentrer un avis" });
-    return;
-  }
-  const newReview = new Review({
-    sender: req.body.sender,
-    receiver: req.body.receiver,
-    date: req.body.date,
-    likes: req.body.likes,
-    review: req.body.review,
-  });
-
-  try {
-    const savedReview = await newReview.save();
-    res.json({ success: true, data: savedReview });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-//diplayReview Router
-
-router.get("/user/reviews", async (req, res) => {
-  try {
-    const reviews = await Review.find();
-    res.json({ success: true, data: reviews });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
 });
 
 // Update user profile router
