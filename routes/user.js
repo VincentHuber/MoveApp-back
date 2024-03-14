@@ -202,11 +202,6 @@ router.put("/user/updateProfile/:token", (req, res) => {
   } = req.body;
   const token = req.params.token;
 
-  console.log("password => ", password);
-  console.log("passwordBool", Boolean(password));
-  console.log("password => ", password);
-  console.log("passwordBool", Boolean(password));
-
   if (!token) {
     return res.json({ result: false, error: "Token invalide" });
   }
