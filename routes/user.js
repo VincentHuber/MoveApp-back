@@ -3,8 +3,8 @@ var router = express.Router();
 
 require("../models/connection");
 
+
 const User = require("../models/user");
-const Review = require("../models/review");
 const { checkBody } = require("../modules/checkBody");
 const bcrypt = require("bcrypt");
 const uid2 = require("uid2");
@@ -13,8 +13,6 @@ const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
 const uniqid = require("uniqid");
 
-const EMAIL_REGEX =
-  /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 //Upload cover picture router
 router.post("/user/uploadPictureCover/:token", async (req, res) => {
@@ -66,14 +64,17 @@ router.post("/user/uploadProfileCover/:token", async (req, res) => {
       res.json({ result: false, error: resultMove });
     }
   } else {
-    res.status(400).json({
-      error:
-        "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête.",
-    });
+    res
+      .status(400)
+      .json({
+        error:
+          "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête.",
+      });
   }
 });
 
 // SignUp router
+
 router.post("/user/signup", (req, res) => {
   console.log("signup route");
   console.log(req.body);
@@ -84,10 +85,10 @@ router.post("/user/signup", (req, res) => {
     return;
   }
 
-  User.findOne({ nickname: { $regex: new RegExp(req.body.nickname, 'i') } })
-  .then(data => {
-    if (data === null) {
-      const hash = bcrypt.hashSync(req.body.password, 10);
+  User.findOne({ nickname: { $regex: new RegExp(req.body.nickname, "i") } })
+    .then((data) => {
+      if (data === null) {
+        const hash = bcrypt.hashSync(req.body.password, 10);
 
         const newUser = new User({
           nickname: req.body.nickname,
@@ -119,14 +120,15 @@ router.post("/user/signup", (req, res) => {
 
 // SignIn router
 router.post("/user/signin", (req, res) => {
+  
   try {
     if (!checkBody(req.body, ["email", "password"])) {
       res.json({ result: false, error: "Un des champs est manquant ou vide" });
       return;
     }
-
-    User.findOne({ email: { $regex: new RegExp(req.body.email, "i") } }).then(
-      (data) => {
+    
+    User.findOne({ email: { $regex: new RegExp(req.body.email, "i") } })
+      .then((data) => {
         console.log("data => ", data);
         console.log(
           "password resp => ",
@@ -139,15 +141,23 @@ router.post("/user/signin", (req, res) => {
             result: false,
             error: "Utilisateur non trouvé ou mot de passe erroné",
           });
+          res.json({
+            result: false,
+            error: "Utilisateur non trouvé ou mot de passe erroné",
+          });
         }
-      }
-    );
+      })
+      .catch((error) => {
+        console.error("Erreur de connexion:", error);
+        res.json({ result: false, error: "Erreur de connexion" });
+      });
   } catch (error) {
     res.status(500).json({ message: "error", error });
   }
 });
 
 // LogOut router
+
 router.put("/user/logout", (req, res) => {
   const { token } = req.body;
 
@@ -163,40 +173,18 @@ router.put("/user/logout", (req, res) => {
       console.error("Erreur de déconnexion:", error);
       res.json({ result: false, error: "Erreur de déconnexion" });
     });
-});
-
-//newReview and saveReview Router
-
-router.post("/user/review", async (req, res) => {
-  if (!checkBody(req.body, ["review"])) {
-    res.json({ result: false, error: "Veuillez rentrer un avis" });
-    return;
+  if (!token) {
+    return res.json({ result: false, error: "Token invalide" });
   }
-  const newReview = new Review({
-    sender: req.body.sender,
-    receiver: req.body.receiver,
-    date: req.body.date,
-    likes: req.body.likes,
-    review: req.body.review,
-  });
 
-  try {
-    const savedReview = await newReview.save();
-    res.json({ success: true, data: savedReview });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-//diplayReview Router
-
-router.get("/user/reviews", async (req, res) => {
-  try {
-    const reviews = await Review.find();
-    res.json({ success: true, data: reviews });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+  User.updateOne({ token: token }, { isLog: false })
+    .then(() => {
+      res.json({ result: true, token: data.token, email: data.email });
+    })
+    .catch((error) => {
+      console.error("Erreur de déconnexion:", error);
+      res.json({ result: false, error: "Erreur de déconnexion" });
+    });
 });
 
 // Update user profile router
@@ -281,16 +269,6 @@ router.get("/users", (req, res) => {
     });
 });
 
-//nouvelle route pour recuperer la donnée profilepicture et nickname
-router.get("/user/ReviewUser", async (req, res) => {
-  try {
-    const user = await User.findOne().select("nickname profilePicture");
-    res.json({ user });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 //Route pour ajouter des matchs
 router.put("/user/match/:token", async (req, res) => {
   try {
@@ -315,16 +293,37 @@ router.put("/user/match/:token", async (req, res) => {
     );
 
     if (!updatedUser) {
-      return res
-        .status(404)
-        .json({ message: "Problème lors de la mise à jour du match" });
+      return res.status(404).json({ message: "Utilisateur non trouvé", error });
     }
 
-    res.status(200).json({ result: true,  token: newToken });
+    res.status(200).json(updatedUser);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Erreur lors de la mise à jour du match", error });
+    console.log("Erreur lors de la mise à jour du match :", error);
+    res.status(500).json({ message: "Erreur lors de la mise à jour du match" });
+  }
+});
+
+//route pour mettre a jour la moyenne de notatation par étoile de l'utilisateur
+router.put("/user/updateAverageStar/:token", async (req, res) => {
+  try {
+    const token = req.params.token;
+    const { averageStar } = req.body;
+
+    console.log(averageStar);
+
+    const user = await User.findOneAndUpdate(
+      { token: token },
+      { averageStar },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+
+    res.json({ result: true, user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
