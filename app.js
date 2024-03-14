@@ -7,6 +7,7 @@ var logger = require('morgan');
 
 var userRouter = require ('./routes/user');
 var reviewRouter = require ('./routes/review');
+var chatRouter = require ('./routes/chat');
 
 var app = express();
 
@@ -25,5 +26,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', userRouter);
 app.use('/', reviewRouter);
+app.use('/', chatRouter);
 
 module.exports = app;
