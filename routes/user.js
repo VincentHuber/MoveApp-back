@@ -83,6 +83,7 @@ router.post("/user/signup", (req, res) => {
     return;
   }
 
+
   User.findOne({ nickname: { $regex: new RegExp(req.body.nickname, "i") } })
     .then((data) => {
       if (data === null) {
