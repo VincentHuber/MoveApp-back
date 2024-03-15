@@ -12,7 +12,6 @@ const cloudinary = require("cloudinary").v2;
 const fs = require("fs");
 const uniqid = require("uniqid");
 
-
 //Upload cover picture router
 router.post("/user/uploadPictureCover/:token", async (req, res) => {
   const token = req.params.token;
@@ -63,12 +62,10 @@ router.post("/user/uploadProfileCover/:token", async (req, res) => {
       res.json({ result: false, error: resultMove });
     }
   } else {
-    res
-      .status(400)
-      .json({
-        error:
-          "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête.",
-      });
+    res.status(400).json({
+      error:
+        "Aucun fichier 'profilePicture' n'a pas été fourni dans la requête.",
+    });
   }
 });
 
@@ -119,13 +116,12 @@ router.post("/user/signup", (req, res) => {
 
 // SignIn router
 router.post("/user/signin", (req, res) => {
-  
   try {
     if (!checkBody(req.body, ["email", "password"])) {
       res.json({ result: false, error: "Un des champs est manquant ou vide" });
       return;
     }
-    
+
     User.findOne({ email: { $regex: new RegExp(req.body.email, "i") } })
       .then((data) => {
         console.log("data => ", data);

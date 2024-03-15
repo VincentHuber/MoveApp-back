@@ -1,35 +1,34 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const reviewSchema = mongoose.Schema({
-  sender: String, 
+  sender: String,
   date: Date,
   stars: Number,
   review: String,
 });
 
-
 const userSchema = mongoose.Schema({
   nickname: String,
-  email:String,
-  password : String,
+  email: String,
+  password: String,
   adress: String,
-  description:String,
-  averageStar:Number,
+  description: String,
+  averageStar: Number,
   isLog: Boolean,
-  sports:{
+  sports: {
     Football: Boolean,
     Basketball: Boolean,
     Running: Boolean,
-    Tennis: Boolean
+    Tennis: Boolean,
   },
-  ambition:String,
-  coverPicture:String,
-  profilePicture:String,
+  ambition: String,
+  coverPicture: String,
+  profilePicture: String,
   token: String,
-  match:[],
-  reviews: [reviewSchema]
+  match: [],
+  reviews: [reviewSchema],
 });
 
-const User = mongoose.model('users', userSchema);
+const User = mongoose.model("users", userSchema);
 
 module.exports = User;
