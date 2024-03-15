@@ -14,16 +14,23 @@ router.post("/review", async (req, res) => {
       .status(400)
       .json({ result: false, error: "Veuillez rentrer un avis" });
   }
-  const newReview = new Review({
-    sender: req.body.sender,
+
+  const sender = await Review.findOne({ token: req.body.sender });
+
+  const newReview = {
+    sender: sender.nickname,
     date: req.body.date,
     stars: req.body.stars,
     review: req.body.review,
-  });
+  };
 
   try {
-    const savedReview = await newReview.save();
-    return res.json({ success: true, data: savedReview });
+    await Review.updateOne(
+      { token: req.body.receiver },
+      { $addToSet: { reviews: newReview } }
+    );
+
+    return res.json({ success: true, data: newReview });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
@@ -31,10 +38,11 @@ router.post("/review", async (req, res) => {
 
 //displayReview Router
 
-router.get("/review", async (req, res) => {
+router.get("/review/:token", async (req, res) => {
   try {
-    const reviews = await Review.find();
-    res.json({ success: true, data: reviews });
+    const user = await Review.findOne({ token: res.params.token }).lean();
+    console.log(user.reviews);
+    res.json({ success: true, reviews: user.reviews || [] });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
