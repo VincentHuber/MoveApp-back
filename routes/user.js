@@ -72,7 +72,6 @@ router.post("/user/uploadProfileCover/:token", async (req, res) => {
 // SignUp router
 
 router.post("/user/signup", (req, res) => {
-  console.log("signup route");
   console.log(req.body);
   if (
     !checkBody(req.body, ["nickname", "email", "password", "adress", "sports"])
@@ -101,7 +100,7 @@ router.post("/user/signup", (req, res) => {
         });
 
         newUser.save().then((data) => {
-          console.log("back : ", data.profilePicture);
+          console.log("back");
           res.json({ result: true, user: data });
         });
       } else {
@@ -266,26 +265,27 @@ router.put("/user/match/:token", async (req, res) => {
   try {
     const newToken = req.body.newMatch;
     const token = req.params.token;
+    console.log("newToken => ", newToken)
     let newId;
 
-    await User.findOne({ token: newToken }).then((data) => {
-      if (data) {
-        newId = data._id;
-      }
-    });
-
-    if (!newId) {
-      return res.status(404).json({ message: "ID non trouvé", error });
+    // Recherche de l'utilisateur associé au nouveau token
+    const foundUser = await User.findOne({ token: newToken });
+    if (foundUser) {
+      console.log("NOUVEAU => ", foundUser._id);
+      newId = foundUser._id;
+    } else {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
+    // Mise à jour de l'utilisateur avec le nouvel ID de match
     const updatedUser = await User.findOneAndUpdate(
       { token: token },
-      { $addToSet: { match: newId } }, //ajoute un id que s'il n'est pas présent dans le tableau
+      { $addToSet: { match: newId } }, // Ajoute l'ID uniquement s'il n'est pas déjà présent
       { new: true }
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ message: "Utilisateur non trouvé", error });
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
 
     res.status(200).json(updatedUser);
@@ -318,5 +318,35 @@ router.put("/user/updateAverageStar/:token", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+//Route pour renvoyer les utilisateurs avec qui on parle
+router.get("/user/menu/:token", (req, res) => {
+  User.findOne({ token: req.params.token })
+    .then((data) => {
+      if (data) {
+        const menu = data.match; 
+        console.log("Matches: ", menu);
+        
+        // Rechercher les utilisateurs
+        User.find({ _id: { $in: menu } })
+          .then((users) => {
+            console.log("Users: ", users);
+            res.json({ result: true, users: users });
+          })
+          .catch((error) => {
+            console.error("Error fetching matched users:", error);
+            res.json({ result: false, error: "Error fetching matched users" });
+          });
+      } else {
+        res.json({ result: false, error: "User not found" });
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching user:", error);
+      res.json({ result: false, error: "Error fetching user" });
+    });
+});
+
+
 
 module.exports = router;
