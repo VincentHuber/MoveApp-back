@@ -321,6 +321,7 @@ router.put("/user/updateAverageStar/:token", async (req, res) => {
 
 //Route pour renvoyer les utilisateurs avec qui on parle
 router.get("/user/menu/:token", (req, res) => {
+
   User.findOne({ token: req.params.token })
     .then((data) => {
       if (data) {
@@ -333,13 +334,16 @@ router.get("/user/menu/:token", (req, res) => {
             console.log("Users: ", users);
             res.json({ result: true, users: users });
           })
+
           .catch((error) => {
             console.error("Error fetching matched users:", error);
             res.json({ result: false, error: "Error fetching matched users" });
           });
+
       } else {
         res.json({ result: false, error: "User not found" });
       }
+      
     })
     .catch((error) => {
       console.error("Error fetching user:", error);
